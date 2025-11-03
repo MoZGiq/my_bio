@@ -16,11 +16,10 @@
     "location": "Москва"
   },
   "links": [
-    { "label": "Telegram",  "url": "https://t.me/username",            "icon": "telegram" },
-    { "label": "VK",        "url": "https://vk.com/username",          "icon": "vk" },
-    { "label": "GitHub",    "url": "https://github.com/username",      "icon": "github" },
-    { "label": "YouTube",   "url": "https://youtube.com/@username",    "icon": "youtube" },
-    { "label": "TikTok",    "url": "https://tiktok.com/@username",     "icon": "tiktok" },
+    { "label": "Telegram",  "url": "https://t.me/qMoZGi",          "icon": "telegram",  "emoji": "✈️" },
+    { "label": "VK",        "url": "https://vk.com/maxvanila",        "icon": "vk",        "emoji": "🧿" },
+    { "label": "GitHub",    "url": "https://github.com/MoZGiq",    "icon": "github",    "emoji": "🐱" },
+    { "label": "YouTube",   "url": "https://www.youtube.com/",  "icon": "youtube",   "emoji": "▶️" },
   ]
 }
 
