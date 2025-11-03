@@ -19,6 +19,6 @@
     { "label": "Telegram", "url": "https://t.me/qMoZGi",      "icon": "telegram", "emoji": "✈️" },
     { "label": "VK",       "url": "https://vk.com/maxvanila", "icon": "vk",       "emoji": "🧿" },
     { "label": "GitHub",   "url": "https://github.com/MoZGiq","icon": "github",   "emoji": "🐱" },
-    { "label": "YouTube",  "url": "https://www.youtube.com/", "icon": "youtube",  "emoji": "▶️" }
+    { "label": "YouTube",  "url": "https://www.youtube.com/@maxVanila", "icon": "youtube",  "emoji": "▶️" }
   ]
 }
