@@ -1,72 +1,850 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Мой био</title>
-  <meta name="theme-color" content="#0a0a0f" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Профиль • Link in bio</title>
+    <meta name="description" content="Персональная страница со ссылками" />
+    <meta name="theme-color" content="#7c3aed" />
+
+    <!-- OG -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Профиль" />
+    <meta property="og:description" content="Персональная страница со ссылками" />
+    <meta property="og:image" content="" />
+    <meta property="og:url" content="" />
+
+    <!-- Шрифт -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%237c3aed%22/></svg>">
+
+    <style>
+        :root{
+          --accent:#7c3aed;
+          --grad-1:#0ea5ea;
+          --grad-2:#7c3aed;
+
+          --text:#e7e7ea;
+          --muted:#b4b4bf;
+          --card-bg:rgba(255,255,255,0.06);
+          --card-br:rgba(255,255,255,0.14);
+          --shadow:0 10px 35px rgba(10,10,20,0.4);
+
+          /* UI */
+          --icon-size:64px;
+          --icon-radius:16px;
+          --grid-min:82px;
+          --avatar-radius:20px;
+          --labels-visible:1;
+        }
+
+        *{ box-sizing:border-box }
+        html,body{ height:100% }
+        body{
+          margin:0;
+          font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+          color:var(--text);
+          background:#0b0c16;
+          display:grid;
+          place-items:center;
+          padding:32px 16px 48px;
+          overflow-x:hidden;
+        }
+
+        /* Кастомный фон */
+        .custom-bg{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+        .custom-bg::before{
+          content:"";
+          position:absolute; inset:0;
+          background:center/cover no-repeat;
+          filter:blur(var(--bg-blur,0px)) saturate(var(--bg-sat,1));
+          opacity:var(--bg-opacity,1);
+          transition:opacity .25s ease, filter .25s ease;
+        }
+        .custom-bg video{
+          position:absolute; inset:0;
+          width:100%; height:100%;
+          object-fit:cover;
+          filter:blur(var(--bg-blur,0px)) saturate(var(--bg-sat,1));
+          opacity:var(--bg-opacity,1);
+        }
+
+        /* Неоновая дымка */
+        .bg{
+          position:fixed; inset:0; z-index:1; pointer-events:none;
+          background:
+            radial-gradient(1000px 1000px at 50% -20%, var(--grad-1), transparent 60%),
+            radial-gradient(800px 800px at 120% 0%, var(--grad-2), transparent 60%);
+          filter:blur(60px) saturate(1.1);
+          opacity:.35;
+        }
+
+        .card{
+          position:relative; z-index:2;
+          width:100%; max-width:560px;
+          background:var(--card-bg);
+          border:1px solid var(--card-br);
+          border-radius:22px;
+          box-shadow:var(--shadow);
+          backdrop-filter:blur(12px);
+          -webkit-backdrop-filter:blur(12px);
+          padding:28px 24px;
+          text-align:center;
+        }
+
+        .avatar-wrap{ position:relative; width:112px; height:112px; margin:6px auto 14px; }
+        .avatar{
+          width:100%; height:100%;
+          border-radius:var(--avatar-radius);
+          object-fit:cover;
+          border:2px solid rgba(255,255,255,.25);
+          box-shadow:0 10px 30px rgba(0,0,0,.35);
+          display:block; cursor:pointer;
+        }
+        .avatar-edit{
+          position:absolute; right:-6px; bottom:-6px;
+          width:28px; height:28px; border-radius:9px;
+          display:grid; place-items:center; font-size:14px; color:#fff;
+          background:color-mix(in oklab, var(--accent) 50%, #0000);
+          border:1px solid color-mix(in oklab, var(--accent) 70%, #ffffff1a);
+          box-shadow:0 8px 20px color-mix(in oklab, var(--accent) 30%, #0000);
+          pointer-events:none;
+        }
+
+        .name{ font-size:28px; font-weight:800; letter-spacing:.2px; margin:0; }
+        .username{ margin-top:6px; color:var(--muted); font-weight:600; }
+        .bio{ margin:14px auto 10px; color:#d9d9e4; line-height:1.55; max-width:44ch; }
+
+        /* Эмодзи-сетка */
+        .emoji-grid{
+          display:grid;
+          grid-template-columns:repeat(auto-fit, minmax(var(--grid-min),1fr));
+          gap:14px;
+          margin:18px 0 6px;
+          justify-items:center;
+        }
+        .emoji-btn{
+          --link-color:var(--accent);
+          display:grid; justify-items:center; gap:8px;
+          text-decoration:none; color:#f1f1f6;
+        }
+        .emoji-ico{
+          width:var(--icon-size); height:var(--icon-size);
+          border-radius:var(--icon-radius);
+          display:grid; place-items:center; font-size:calc(var(--icon-size) * .44);
+          background:color-mix(in oklab, var(--link-color) 22%, transparent);
+          border:1px solid color-mix(in oklab, var(--link-color) 60%, #ffffff1a);
+          box-shadow:0 10px 22px color-mix(in oklab, var(--link-color) 30%, transparent);
+          transition:transform .12s ease, box-shadow .2s ease, border-color .2s ease;
+        }
+        .emoji-btn:hover .emoji-ico{ transform:translateY(-2px) scale(1.03) }
+        .emoji-btn:active .emoji-ico{ transform:translateY(0) scale(1.0) }
+        .emoji-label{
+          font-size:12px; color:var(--muted); font-weight:700; letter-spacing:.2px; line-height:1;
+          max-width:9ch; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;
+          display: inline-block; opacity: var(--labels-visible);
+        }
+
+        .footer{
+          position:fixed; z-index:2; left:0; right:0; bottom:12px;
+          text-align:center; color:#a8a8b5; font-size:12px; pointer-events:none;
+        }
+        .footer .dot{ margin:0 6px; opacity:.5 }
+
+        /* FAB */
+        .fab{
+          position:fixed; z-index:5;
+          right:16px; bottom:16px;
+          width:48px; height:48px; border-radius:14px;
+          display:grid; place-items:center;
+          color:#fff; font-size:22px; cursor:pointer;
+          border:1px solid #ffffff1f;
+          background:linear-gradient(180deg, color-mix(in oklab, var(--accent) 55%, #0000), #0000);
+          box-shadow:0 10px 30px rgba(0,0,0,.45);
+          transition:transform .12s ease, filter .2s ease;
+        }
+        .fab:hover{ transform:translateY(-1px) }
+
+        /* Панель настроек */
+        .panel{ position:fixed; inset:0; z-index:10; pointer-events:none; }
+        .panel.open{ pointer-events:auto; }
+        .panel .overlay{
+          position:absolute; inset:0; background:rgba(0,0,0,.45); opacity:0; transition:opacity .2s ease;
+        }
+        .panel.open .overlay{ opacity:1 }
+        .drawer{
+          position:absolute; right:0; top:0; bottom:0; width:380px; max-width:100%;
+          transform:translateX(100%); transition:transform .25s ease;
+          background:rgba(20,20,30,.6); backdrop-filter:blur(16px);
+          border-left:1px solid #ffffff1a; color:#e9e9f4;
+          display:flex; flex-direction:column;
+        }
+        .panel.open .drawer{ transform:none }
+        .drawer header{
+          display:flex; align-items:center; justify-content:space-between;
+          padding:14px 14px; border-bottom:1px solid #ffffff14; font-weight:800;
+        }
+        .drawer .content{ padding:14px; overflow:auto; }
+        .section{ margin-bottom:16px; }
+        .section h3{ margin:0 0 8px; font-size:14px; text-transform:uppercase; letter-spacing:.6px; color:#cfd0d7; }
+        .field{ display:flex; gap:8px; align-items:center; margin:8px 0; }
+        .field label{ flex:0 0 110px; font-size:12px; color:#b8b9c3; }
+        .field input[type="text"],
+        .field input[type="url"],
+        .field input[type="number"],
+        .field textarea,
+        .field select{
+          flex:1; border-radius:10px; border:1px solid #ffffff22; background:#11131b; color:#e9e9f4;
+          padding:10px 12px; outline:none;
+        }
+        .field input[type="color"]{ width:46px; height:36px; padding:0; border-radius:10px; border:1px solid #ffffff22; background:#11131b }
+        .row{ display:flex; gap:8px; }
+        .btn{
+          display:inline-grid; place-items:center;
+          padding:10px 12px; border-radius:10px; cursor:pointer; user-select:none;
+          background:#1a1d29; color:#e9e9f4; border:1px solid #ffffff22;
+          transition:transform .12s ease, background .2s ease;
+        }
+        .btn:hover{ transform:translateY(-1px) }
+        .btn.destructive{ background:#2a1420; border-color:#ff3b7a66 }
+        .btn.primary{ background:linear-gradient(180deg, color-mix(in oklab, var(--accent) 55%, #0000), #0000); }
+        .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+        /* Редактор ссылок */
+        .links-editor .item{
+          display:grid; grid-template-columns:24px 1fr 1.2fr 52px 34px; gap:6px; align-items:center; margin:6px 0;
+          background:#0f121b; border:1px solid #ffffff14; border-radius:10px; padding:8px;
+        }
+        .drag{ cursor:grab; user-select:none; text-align:center; color:#9aa0ae }
+        .icon-input{ width:100%; text-align:center; }
+        .del{ color:#ff6486; background:#2a1420; border-color:#ff3b7a66 }
+
+        /* Адаптив */
+        @media (max-width: 420px){
+          .card{ padding:22px 16px; }
+          .name{ font-size:24px; }
+          .avatar-wrap{ width:100px; height:100px; }
+          .emoji-ico{ font-size:calc(var(--icon-size) * .45); }
+          .drawer{ width:100% }
+          .fab{ right:12px; bottom:12px; }
+        }
+    </style>
 </head>
-<body class="theme-acid">
-  <!-- Иконка настроек -->
-  <button id="settingsBtn" class="floating-btn" aria-label="Открыть настройки" title="Настройки">
-    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-      <path d="M10.325 4.317a1 1 0 0 1 1.35-.436l.555.277a2 2 0 0 0 1.801 0l.555-.277a1 1 0 0 1 1.351.436l.388.673a2 2 0 0 0 1.299.95l.746.186a1 1 0 0 1 .757.97v.77a2 2 0 0 0 .442 1.26l.494.616a1 1 0 0 1 0 1.246l-.494.616a2 2 0 0 0-.442 1.26v.77a1 1 0 0 1-.757.97l-.746.186a2 2 0 0 0-1.299.95l-.388.673a1 1 0 0 1-1.351.436l-.555-.277a2 2 0 0 0-1.801 0l-.555.277a1 1 0 0 1-1.35-.436l-.389-.673a2 2 0 0 0-1.298-.95l-.747-.186a1 1 0 0 1-.756-.97v-.77a2 2 0 0 0-.442-1.26l-.494-.616a1 1 0 0 1 0-1.246l.494-.616a2 2 0 0 0 .442-1.26v-.77a1 1 0 0 1 .756-.97l.747-.186a2 2 0 0 0 1.298-.95l.389-.673zM12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" fill="currentColor"/>
-    </svg>
-  </button>
+<body>
+<!-- Кастомный фон -->
+<div class="custom-bg" id="customBg" aria-hidden="true"></div>
+<!-- Неоновая дымка -->
+<div class="bg" aria-hidden="true"></div>
 
-  <!-- Панель настроек -->
-  <div id="settingsPanel" class="settings-panel" hidden>
-    <div class="panel-header">
-      <strong>Настройки</strong>
-      <button id="closeSettings" class="icon-only" aria-label="Закрыть">
-        ✕
-      </button>
+<main class="card" id="card">
+    <div class="avatar-wrap">
+        <img id="avatar" class="avatar" src="" alt="Аватар" title="Нажми, чтобы изменить" />
+        <div class="avatar-edit" aria-hidden="true">✏️</div>
+        <input id="avatarInput" type="file" accept="image/*" hidden />
     </div>
 
-    <div class="panel-section">
-      <div class="label">Тема</div>
-      <div class="theme-swatches">
-        <button class="swatch" data-theme="acid" title="Кислотная"></button>
-        <button class="swatch" data-theme="pinkpurple" title="Розово‑фиолетовая"></button>
-        <button class="swatch" data-theme="neon" title="Неоновая"></button>
-      </div>
-    </div>
+    <h1 id="name" class="name"></h1>
+    <div id="username" class="username"></div>
+    <p id="bio" class="bio"></p>
 
-    <div class="panel-section">
-      <div class="label">Кастомный фон</div>
-      <div class="bg-controls">
-        <input id="bgUrl" type="url" placeholder="https://ссылка-на-фон.jpg" />
-        <div class="row">
-          <label class="file-label">
-            <input id="bgFile" type="file" accept="image/*" />
-            Загрузить файл
-          </label>
-          <button id="bgApplyUrl" class="primary">Применить</button>
+    <!-- Сетка эмодзи‑кнопок -->
+    <div class="emoji-grid" id="links"></div>
+</main>
+
+<footer class="footer">
+    <span id="location"></span>
+    <span class="dot" aria-hidden="true">•</span>
+    <span>2025 год</span>
+</footer>
+
+<!-- FAB настройки -->
+<button class="fab" id="fab" title="Настройки (E)">⚙️</button>
+
+<!-- Панель настроек -->
+<div class="panel" id="panel" aria-hidden="true">
+    <div class="overlay" id="overlay"></div>
+    <aside class="drawer" role="dialog" aria-label="Настройки">
+        <header>
+            <div>Настройки</div>
+            <div class="row">
+                <button class="btn" id="btnExport">Экспорт</button>
+                <button class="btn" id="btnImport">Импорт</button>
+                <button class="btn destructive" id="btnReset" title="Сбросить настройки">Сброс</button>
+            </div>
+        </header>
+        <div class="content">
+            <div class="section">
+                <h3>Профиль</h3>
+                <div class="field"><label>Имя</label><input id="setName" type="text" placeholder="Имя" /></div>
+                <div class="field"><label>Ник</label><input id="setUsername" type="text" placeholder="username" /></div>
+                <div class="field"><label>Био</label><textarea id="setBio" rows="2" placeholder="О себе"></textarea></div>
+                <div class="field"><label>Локация</label><input id="setLocation" type="text" placeholder="Город, страна" /></div>
+                <div class="grid-2">
+                    <button class="btn" id="btnAvatarUpload">Загрузить аватар</button>
+                    <button class="btn" id="btnAvatarClear">Сбросить аватар</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Оформление</h3>
+                <div class="field">
+                    <label>Пресет</label>
+                    <select id="setPreset">
+                        <option value="">— вручную —</option>
+                        <option value="acid">Acid</option>
+                        <option value="pinkviolet">Pink/Violet</option>
+                        <option value="neon">Neon</option>
+                    </select>
+                </div>
+                <div class="field"><label>Accent</label><input id="setAccent" type="color" /></div>
+                <div class="row">
+                    <div class="field" style="flex:1"><label>Grad 1</label><input id="setG1" type="color" /></div>
+                    <div class="field" style="flex:1"><label>Grad 2</label><input id="setG2" type="color" /></div>
+                </div>
+                <div class="row">
+                    <div class="field" style="flex:1"><label>Аватар r</label><input id="setAvatarR" type="number" min="0" max="50" /></div>
+                    <div class="field" style="flex:1"><label>Icon r</label><input id="setIconR" type="number" min="0" max="40" /></div>
+                </div>
+                <div class="row">
+                    <div class="field" style="flex:1"><label>Icon size</label><input id="setIconSize" type="number" min="44" max="96" step="2" /></div>
+                    <div class="field" style="flex:1"><label>Grid min</label><input id="setGridMin" type="number" min="64" max="140" step="2" /></div>
+                </div>
+                <div class="field">
+                    <label>Подписи</label>
+                    <select id="setLabels">
+                        <option value="1">Показывать</option>
+                        <option value="0">Скрыть</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Фон</h3>
+                <div class="field"><label>Image URL</label><input id="setBgImage" type="url" placeholder="https://..." /></div>
+                <div class="field"><label>Video URL</label><input id="setBgVideo" type="url" placeholder="https://.../bg.mp4" /></div>
+                <div class="grid-2">
+                    <button class="btn" id="btnBgUpload">Загрузить картинку</button>
+                    <button class="btn" id="btnBgClear">Очистить фон</button>
+                </div>
+                <div class="row">
+                    <div class="field" style="flex:1"><label>Blur</label><input id="setBgBlur" type="number" min="0" max="30" step="1" /></div>
+                    <div class="field" style="flex:1"><label>Opacity</label><input id="setBgOpacity" type="number" min="0" max="1" step="0.05" /></div>
+                </div>
+                <div class="row">
+                    <div class="field" style="flex:1"><label>Saturate</label><input id="setBgSat" type="number" min="0.5" max="2" step="0.1" /></div>
+                    <div class="field" style="flex:1">
+                        <label>Fit</label>
+                        <select id="setBgFit">
+                            <option value="cover">cover</option>
+                            <option value="contain">contain</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section links-editor" id="linksEditor">
+                <h3>Ссылки</h3>
+                <div id="linksList"></div>
+                <div class="row" style="margin-top:8px">
+                    <button class="btn primary" id="btnAddLink">Добавить ссылку</button>
+                </div>
+                <p style="color:#9aa0ae; font-size:12px; margin-top:6px;">Подсказка: перетаскивай ☰, чтобы менять порядок.</p>
+            </div>
+
+            <div class="section">
+                <h3>Шеринг/сохранение</h3>
+                <div class="grid-2">
+                    <button class="btn" id="btnSave">Сохранить</button>
+                    <button class="btn" id="btnShare">Ссылка на конфиг</button>
+                </div>
+            </div>
         </div>
-        <button id="bgReset" class="ghost">Сбросить фон</button>
-      </div>
-    </div>
-  </div>
+    </aside>
+</div>
 
-  <!-- Контент -->
-  <main class="wrap">
-    <section class="card">
-      <div class="avatar">
-        <img id="avatar" src="assets/img/avatar.jpg" alt="Аватар" />
-      </div>
-      <h1 id="name">Ваше имя</h1>
-      <p id="handle" class="muted">@вашник</p>
-      <p id="bio" class="bio">Короткое описание о себе, чем занимаетесь, чем можете быть полезны.</p>
+<script>
+    // ========= ДЕФОЛТНЫЙ ПРОФИЛЬ =========
+    window.PROFILE = {
+      name: "Алексей Иванов",
+      username: "alexei",
+      bio: "Frontend разработчик • React / Next.js • coffee-driven ☕️",
+      location: "Moscow, RU",
+      avatar: "https://i.pravatar.cc/240?img=68",
 
-      <!-- Только иконки ссылок -->
-      <ul id="links" class="links" aria-label="Ссылки"></ul>
-    </section>
-  </main>
+      theme: {
+        preset: "pinkviolet", // acid | pinkviolet | neon | ""
+        accent: null,
+        gradient: null
+      },
 
-  <script src="assets/js/config.js"></script>
-  <script src="assets/js/main.js"></script>
+      background: {
+        image: "https://images.unsplash.com/photo-1552083375-1447ce886485?q=80&w=1920&auto=format&fit=crop",
+        video: null,
+        blur: 8,
+        opacity: 0.9,
+        saturate: 1.1,
+        fit: "cover"
+      },
+
+      behavior: {
+        persistAvatar: true
+      },
+
+      ui: {
+        iconSize: 64,
+        iconRadius: 16,
+        avatarRadius: 20,
+        gridMin: 82,
+        showLabels: true
+      },
+
+      links: [
+        { label: "Telegram", url: "https://t.me/username", icon: "✈️", color: "#229ED9" },
+        { label: "Insta",    url: "https://instagram.com/username", icon: "📷", color: "#E1306C" },
+        { label: "VK",       url: "https://vk.com/username", icon: "🟦", color: "#0077FF" },
+        { label: "GitHub",   url: "https://github.com/username", icon: "💻", color: "#333333" },
+        { label: "YouTube",  url: "https://youtube.com/@username", icon: "▶️", color: "#FF0033" },
+        { label: "Сайт",     url: "https://example.com", icon: "🌐", color: "#16a34a" },
+        { label: "Email",    url: "mailto:me@example.com", icon: "✉️", color: "#f97316" }
+      ]
+    };
+</script>
+
+<script>
+    (function(){
+      const THEMES = {
+        acid:       { accent:"#b4ff1f", gradient:["#00ffd1","#b4ff1f"] },
+        pinkviolet: { accent:"#ff4db8", gradient:["#ff4db8","#7c3aed"] },
+        neon:       { accent:"#00e5ff", gradient:["#00ffa3","#00e5ff"] }
+      };
+
+      const DEFAULT = deepClone(window.PROFILE);
+      let profile = deepClone(DEFAULT);
+
+      const $ = s => document.querySelector(s);
+      const $$ = s => Array.from(document.querySelectorAll(s));
+
+      // DOM
+      const avatarEl = $("#avatar");
+      const avatarInput = $("#avatarInput");
+      const customBg = $("#customBg");
+      const nameEl = $("#name");
+      const usernameEl = $("#username");
+      const bioEl = $("#bio");
+      const linksEl = $("#links");
+      const footerLocation = $("#location");
+
+      // Settings panel
+      const panel = $("#panel"), overlay = $("#overlay"), fab = $("#fab");
+      // Fields
+      const setName = $("#setName"), setUsername=$("#setUsername"), setBio=$("#setBio"), setLocation=$("#setLocation");
+      const setPreset=$("#setPreset"), setAccent=$("#setAccent"), setG1=$("#setG1"), setG2=$("#setG2");
+      const setAvatarR=$("#setAvatarR"), setIconR=$("#setIconR"), setIconSize=$("#setIconSize"), setGridMin=$("#setGridMin"), setLabels=$("#setLabels");
+      const setBgImage=$("#setBgImage"), setBgVideo=$("#setBgVideo"), setBgBlur=$("#setBgBlur"), setBgOpacity=$("#setBgOpacity"), setBgSat=$("#setBgSat"), setBgFit=$("#setBgFit");
+      const btnAvatarUpload=$("#btnAvatarUpload"), btnAvatarClear=$("#btnAvatarClear");
+      const btnBgUpload=$("#btnBgUpload"), btnBgClear=$("#btnBgClear");
+      const linksEditor=$("#linksEditor"), linksList=$("#linksList");
+      const btnAddLink=$("#btnAddLink");
+      const btnSave=$("#btnSave"), btnExport=$("#btnExport"), btnImport=$("#btnImport"), btnShare=$("#btnShare"), btnReset=$("#btnReset");
+
+      // ========== INIT ==========
+      loadFromURL();
+      loadFromStorage();
+      applyTheme();
+      applyBackground();
+      applyUI();
+      renderProfile();
+      bindAvatarEdit();
+      bindPanel();
+      fillSettings();
+      renderLinksEditor();
+
+      // ========== THEME ==========
+      function applyTheme(){
+        const t = profile.theme || {};
+        const presetObj = t.preset && THEMES[t.preset] ? THEMES[t.preset] : null;
+        const accent = t.accent || presetObj?.accent || "#7c3aed";
+        const grad = t.gradient || presetObj?.gradient || ["#0ea5ea","#7c3aed"];
+
+        const root = document.documentElement;
+        root.style.setProperty("--accent", accent);
+        root.style.setProperty("--grad-1", grad[0]);
+        root.style.setProperty("--grad-2", grad[1]);
+
+        const themeMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeMeta) themeMeta.setAttribute("content", accent);
+      }
+
+      // ========== BACKGROUND ==========
+      function applyBackground(){
+        const bg = profile.background || {};
+        customBg.innerHTML = "";
+        customBg.style.setProperty("--bg-blur", (bg.blur||0) + "px");
+        customBg.style.setProperty("--bg-opacity", (bg.opacity ?? 1));
+        customBg.style.setProperty("--bg-sat", (bg.saturate || 1));
+
+        // ::before (image)
+        ensureStyleBlock("bg-inline-style", `
+          #customBg::before{
+            background-image:${bg.image ? `url("${bg.image}")` : "none"};
+            background-size:${bg.fit || "cover"};
+            background-position:center;
+          }
+        `);
+
+        if (bg.video){
+          const v = document.createElement("video");
+          v.src = bg.video; v.autoplay = true; v.loop = true; v.muted = true; v.playsInline = true;
+          v.style.objectFit = bg.fit || "cover";
+          customBg.appendChild(v);
+        }
+      }
+
+      // ========== UI VARS ==========
+      function applyUI(){
+        const ui = profile.ui || {};
+        const root = document.documentElement;
+        root.style.setProperty("--icon-size", (ui.iconSize||64) + "px");
+        root.style.setProperty("--icon-radius", (ui.iconRadius||16) + "px");
+        root.style.setProperty("--avatar-radius", (ui.avatarRadius||20) + "px");
+        root.style.setProperty("--grid-min", (ui.gridMin||82) + "px");
+        root.style.setProperty("--labels-visible", ui.showLabels ? "1" : "0");
+      }
+
+      // ========== META ==========
+      function setMeta(name, content){ const el=document.querySelector(`meta[name="${name}"]`); if(el) el.setAttribute("content", content); }
+      function setOG(property, content){ const el=document.querySelector(`meta[property="${property}"]`); if(el) el.setAttribute("content", content); }
+
+      // ========== RENDER ==========
+      function renderProfile(){
+        // avatar (localStorage override)
+        const savedAvatar = profile.behavior?.persistAvatar ? localStorage.getItem("profile_avatar") : null;
+        avatarEl.src = savedAvatar || profile.avatar || "";
+        avatarEl.alt = profile.name ? `Аватар ${profile.name}` : "Аватар";
+
+        nameEl.textContent = profile.name || "";
+        usernameEl.textContent = profile.username ? `@${profile.username}` : "";
+        bioEl.textContent = profile.bio || "";
+        footerLocation.textContent = profile.location || "";
+
+        const title = profile.name ? `${profile.name} • ${profile.username ? '@' + profile.username : 'profile'}` : "Профиль";
+        document.title = title;
+        setMeta("description", profile.bio || "Персональная страница со ссылками");
+        setOG("og:title", title);
+        setOG("og:description", profile.bio || "");
+        setOG("og:image", avatarEl.src || "");
+        setOG("og:url", window.location.href);
+
+        // emoji buttons
+        linksEl.innerHTML = "";
+        (profile.links || []).forEach(link=>{
+          const a = document.createElement("a");
+          a.className = "emoji-btn";
+          a.href = link.url; a.target = "_blank"; a.rel="noopener noreferrer";
+          a.ariaLabel = link.label || domainFrom(link.url) || "Ссылка";
+          a.title = `${link.label || "Ссылка"} • ${domainFrom(link.url)}`;
+          if (link.color) a.style.setProperty("--link-color", link.color);
+
+          const ico = document.createElement("div");
+          ico.className = "emoji-ico";
+          ico.textContent = link.icon || "🔗";
+
+          const label = document.createElement("div");
+          label.className = "emoji-label";
+          label.textContent = link.label || domainFrom(link.url) || "Link";
+
+          a.appendChild(ico);
+          a.appendChild(label);
+          linksEl.appendChild(a);
+        });
+      }
+
+      // ========== AVATAR EDIT ==========
+      function bindAvatarEdit(){
+        const input = avatarInput;
+        function handleFile(file){
+          if (!file || !file.type?.startsWith("image")) return;
+          const reader = new FileReader();
+          reader.onload = ()=> {
+            const dataUrl = reader.result;
+            avatarEl.src = dataUrl;
+            if (profile.behavior?.persistAvatar) {
+              try { localStorage.setItem("profile_avatar", dataUrl); } catch {}
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+        avatarEl.addEventListener("click", ()=> input.click());
+        input.addEventListener("change", e=>{ handleFile(e.target.files?.[0]); input.value = "" });
+        avatarEl.addEventListener("dragover", e=>{ e.preventDefault(); });
+        avatarEl.addEventListener("drop", e=>{ e.preventDefault(); handleFile(e.dataTransfer?.files?.[0]); });
+      }
+
+      // ========== SETTINGS PANEL ==========
+      function bindPanel(){
+        function open(){ panel.classList.add("open"); panel.setAttribute("aria-hidden","false"); }
+        function close(){ panel.classList.remove("open"); panel.setAttribute("aria-hidden","true"); }
+        fab.addEventListener("click", open);
+        overlay.addEventListener("click", close);
+        document.addEventListener("keydown", e=>{
+          if (e.key.toLowerCase()==="e" && !e.ctrlKey && !e.metaKey && !e.altKey) open();
+          if (e.key==="Escape") close();
+        });
+
+        // Profile fields
+        setName.addEventListener("input", e=>{ profile.name=e.target.value; renderAndSave(); });
+        setUsername.addEventListener("input", e=>{ profile.username=e.target.value.replace(/^@/,""); renderAndSave(); });
+        setBio.addEventListener("input", e=>{ profile.bio=e.target.value; renderAndSave(); });
+        setLocation.addEventListener("input", e=>{ profile.location=e.target.value; renderAndSave(); });
+
+        // Theme
+        setPreset.addEventListener("change", e=>{ profile.theme.preset = e.target.value || ""; applyTheme(); renderAndSave(); });
+        setAccent.addEventListener("input", e=>{ profile.theme.accent = e.target.value || null; applyTheme(); renderAndSave(); });
+        setG1.addEventListener("input", e=>{ setGrad(0, e.target.value); });
+        setG2.addEventListener("input", e=>{ setGrad(1, e.target.value); });
+        function setGrad(i, val){
+          profile.theme.gradient = profile.theme.gradient || [getCss("--grad-1"), getCss("--grad-2")];
+          profile.theme.gradient[i] = val;
+          applyTheme(); renderAndSave();
+        }
+
+        // UI
+        setAvatarR.addEventListener("input", e=>{ profile.ui.avatarRadius=toNum(e.target.value,20); applyUI(); save(); });
+        setIconR.addEventListener("input", e=>{ profile.ui.iconRadius=toNum(e.target.value,16); applyUI(); save(); });
+        setIconSize.addEventListener("input", e=>{ profile.ui.iconSize=toNum(e.target.value,64); applyUI(); save(); });
+        setGridMin.addEventListener("input", e=>{ profile.ui.gridMin=toNum(e.target.value,82); applyUI(); save(); });
+        setLabels.addEventListener("change", e=>{ profile.ui.showLabels = e.target.value==="1"; applyUI(); save(); });
+
+        // Background
+        setBgImage.addEventListener("input", e=>{ profile.background.image=e.target.value||null; profile.background.video=null; setBgVideo.value=""; applyBackground(); save(); });
+        setBgVideo.addEventListener("input", e=>{ profile.background.video=e.target.value||null; if (e.target.value) { profile.background.image=null; setBgImage.value=""; } applyBackground(); save(); });
+        setBgBlur.addEventListener("input", e=>{ profile.background.blur=toNum(e.target.value,0); applyBackground(); save(); });
+        setBgOpacity.addEventListener("input", e=>{ profile.background.opacity=parseFloat(e.target.value)||1; applyBackground(); save(); });
+        setBgSat.addEventListener("input", e=>{ profile.background.saturate=parseFloat(e.target.value)||1; applyBackground(); save(); });
+        setBgFit.addEventListener("change", e=>{ profile.background.fit=e.target.value; applyBackground(); save(); });
+
+        // Avatar buttons
+        btnAvatarUpload.addEventListener("click", ()=> avatarInput.click());
+        btnAvatarClear.addEventListener("click", ()=>{
+          try { localStorage.removeItem("profile_avatar"); } catch {}
+          avatarEl.src = profile.avatar || "";
+        });
+
+        // Background uploads
+        btnBgUpload.addEventListener("click", ()=>{
+          const input = document.createElement("input");
+          input.type="file"; input.accept="image/*";
+          input.onchange = (e)=>{
+            const file = e.target.files?.[0]; if(!file) return;
+            const r = new FileReader();
+            r.onload = ()=>{ profile.background.image = r.result; profile.background.video=null; setBgImage.value=""; setBgVideo.value=""; applyBackground(); save(); };
+            r.readAsDataURL(file);
+          };
+          input.click();
+        });
+        btnBgClear.addEventListener("click", ()=>{
+          profile.background.image=null; profile.background.video=null;
+          setBgImage.value=""; setBgVideo.value="";
+          applyBackground(); save();
+        });
+
+        // Links
+        btnAddLink.addEventListener("click", ()=>{
+          profile.links.push({ label:"Новая", url:"https://", icon:"🔗", color:"#7c3aed" });
+          renderLinksEditor(); renderAndSave();
+        });
+
+        // Export / import / save / share / reset
+        btnSave.addEventListener("click", ()=>{ save(); flash(btnSave); });
+        btnExport.addEventListener("click", ()=>{
+          const json = JSON.stringify(profile, null, 2);
+          copy(json).then(()=>flash(btnExport,"Скопировано")).catch(()=>download("profile.json", json));
+        });
+        btnImport.addEventListener("click", ()=>{
+          const input = document.createElement("input"); input.type="file"; input.accept="application/json";
+          input.onchange = (e)=>{
+            const f = e.target.files?.[0]; if(!f) return;
+            const r = new FileReader();
+            r.onload = ()=>{
+              try { profile = normalize(JSON.parse(r.result)); } catch { alert("Некорректный JSON"); return; }
+              applyTheme(); applyBackground(); applyUI(); renderProfile(); fillSettings(); renderLinksEditor(); save();
+            };
+            r.readAsText(f);
+          };
+          input.click();
+        });
+        btnShare.addEventListener("click", ()=>{
+          const link = makeShareLink(profile);
+          copy(link).then(()=>flash(btnShare,"Ссылка скопирована")).catch(()=>window.prompt("Ссылка:", link));
+        });
+        btnReset.addEventListener("click", ()=>{
+          if (!confirm("Сбросить настройки к дефолтным?")) return;
+          profile = deepClone(DEFAULT);
+          try { localStorage.removeItem("profile_data"); } catch {}
+          applyTheme(); applyBackground(); applyUI(); renderProfile(); fillSettings(); renderLinksEditor();
+          flash(btnReset);
+        });
+      }
+
+      // ========== SETTINGS: FILL ==========
+      function fillSettings(){
+        setName.value = profile.name || "";
+        setUsername.value = profile.username || "";
+        setBio.value = profile.bio || "";
+        setLocation.value = profile.location || "";
+
+        setPreset.value = profile.theme?.preset || "";
+        setAccent.value = profile.theme?.accent || getCss("--accent");
+        const g1 = profile.theme?.gradient?.[0] || getCss("--grad-1");
+        const g2 = profile.theme?.gradient?.[1] || getCss("--grad-2");
+        setG1.value = toColor(g1); setG2.value = toColor(g2);
+
+        setAvatarR.value = profile.ui?.avatarRadius ?? 20;
+        setIconR.value = profile.ui?.iconRadius ?? 16;
+        setIconSize.value = profile.ui?.iconSize ?? 64;
+        setGridMin.value = profile.ui?.gridMin ?? 82;
+        setLabels.value = profile.ui?.showLabels ? "1" : "0";
+
+        setBgImage.value = profile.background?.image || "";
+        setBgVideo.value = profile.background?.video || "";
+        setBgBlur.value = profile.background?.blur ?? 0;
+        setBgOpacity.value = profile.background?.opacity ?? 1;
+        setBgSat.value = profile.background?.saturate ?? 1;
+        setBgFit.value = profile.background?.fit || "cover";
+      }
+
+      // ========== LINKS EDITOR ==========
+      function renderLinksEditor(){
+        linksList.innerHTML = "";
+        profile.links.forEach((link, idx)=>{
+          const row = document.createElement("div");
+          row.className = "item";
+          row.draggable = true;
+          row.dataset.index = idx;
+
+          const drag = document.createElement("div"); drag.className="drag"; drag.textContent="☰";
+          const label = document.createElement("input"); label.type="text"; label.value = link.label || ""; label.placeholder="Метка";
+          const url = document.createElement("input"); url.type="url"; url.value = link.url || ""; url.placeholder="https://...";
+          const color = document.createElement("input"); color.type="color"; color.value = toColor(link.color || "#7c3aed");
+          const icon = document.createElement("input"); icon.className="icon-input"; icon.type="text"; icon.value = link.icon || "🔗"; icon.maxLength = 4;
+          const del = document.createElement("button"); del.className="btn del"; del.textContent="🗑";
+
+          // grid template: 24px drag | label | url | color | del
+          row.style.gridTemplateColumns = "24px 1fr 1.2fr 52px 34px";
+          row.append(drag, label, url, color, del);
+          // standalone icon on top of label field
+          label.style.paddingLeft="10px";
+          label.style.background="#0a0d16";
+
+          // Append separate small icon field stacked? Keep compact: put icon before label:
+          // Replace: We'll insert icon before label:
+          row.insertBefore(icon, label);
+          row.style.gridTemplateColumns = "24px 52px 1fr 1.2fr 52px 34px";
+
+          // Handlers
+          label.addEventListener("input", e=>{ link.label = e.target.value; renderAndSave(); });
+          url.addEventListener("input", e=>{ link.url = e.target.value; save(); });
+          color.addEventListener("input", e=>{ link.color = e.target.value; renderAndSave(); });
+          icon.addEventListener("input", e=>{ link.icon = e.target.value || "🔗"; renderAndSave(); });
+          del.addEventListener("click", ()=>{
+            profile.links.splice(idx,1); renderLinksEditor(); renderAndSave();
+          });
+
+          // Drag n drop
+          row.addEventListener("dragstart", e=>{
+            e.dataTransfer.setData("text/plain", String(idx));
+            e.dataTransfer.effectAllowed = "move";
+          });
+          row.addEventListener("dragover", e=>{ e.preventDefault(); e.dataTransfer.dropEffect="move"; row.style.outline="1px dashed #7c7d87"; });
+          row.addEventListener("dragleave", ()=>{ row.style.outline="none"; });
+          row.addEventListener("drop", e=>{
+            e.preventDefault(); row.style.outline="none";
+            const from = Number(e.dataTransfer.getData("text/plain"));
+            const to = idx;
+            if (from===to) return;
+            const item = profile.links.splice(from,1)[0];
+            profile.links.splice(to,0,item);
+            renderLinksEditor(); renderAndSave();
+          });
+
+          linksList.appendChild(row);
+        });
+      }
+
+      // ========== STORAGE / SHARE ==========
+      function save(){
+        try { localStorage.setItem("profile_data", JSON.stringify(profile)); } catch {}
+      }
+      function renderAndSave(){ renderProfile(); save(); }
+      function loadFromStorage(){
+        try {
+          const raw = localStorage.getItem("profile_data");
+          if (!raw) return;
+          const data = JSON.parse(raw);
+          profile = normalize(data);
+        } catch {}
+      }
+      function loadFromURL(){
+        const params = new URLSearchParams(location.search);
+        const p = params.get("p");
+        if (!p) return;
+        try {
+          const json = decodeURIComponent(escape(atob(p)));
+          const data = JSON.parse(json);
+          profile = normalize(data);
+        } catch { console.warn("Bad config in URL"); }
+      }
+      function makeShareLink(obj){
+        const json = JSON.stringify(obj);
+        const b64 = btoa(unescape(encodeURIComponent(json)));
+        const url = new URL(window.location.href);
+        url.searchParams.set("p", b64);
+        return url.toString();
+      }
+
+      // ========== HELPERS ==========
+      function getCss(varName){ return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
+      function toNum(v, d){ v = Number(v); return Number.isFinite(v) ? v : d; }
+      function toColor(v){
+        if (!v) return "#7c3aed";
+        // if rgb(...) convert to hex rough
+        if (v.startsWith("rgb")){
+          const m = v.match(/rgb[a]?\((\d+),\s*(\d+),\s*(\d+)/i);
+          if (m){ return "#" + [m[1],m[2],m[3]].map(n=>Number(n).toString(16).padStart(2,"0")).join(""); }
+        }
+        return v;
+      }
+      function deepClone(x){ return JSON.parse(JSON.stringify(x)); }
+      function normalize(data){
+        const out = deepClone(DEFAULT);
+        Object.assign(out, data);
+        out.theme = Object.assign({}, DEFAULT.theme, data.theme||{});
+        out.background = Object.assign({}, DEFAULT.background, data.background||{});
+        out.behavior = Object.assign({}, DEFAULT.behavior, data.behavior||{});
+        out.ui = Object.assign({}, DEFAULT.ui, data.ui||{});
+        out.links = Array.isArray(data.links) ? data.links : DEFAULT.links;
+        return out;
+      }
+      function domainFrom(url){ try { return new URL(url).hostname.replace(/^www\./,""); } catch { return ""; } }
+      function ensureStyleBlock(id, css){
+        let el = document.getElementById(id);
+        if (!el){ el = document.createElement("style"); el.id=id; document.head.appendChild(el); }
+        el.textContent = css;
+      }
+      function flash(btn, text){
+        const old = btn.textContent;
+        if (text) btn.textContent = text;
+        btn.style.transform="scale(0.98)";
+        setTimeout(()=>{ btn.style.transform=""; if(text) btn.textContent=old; }, 900);
+      }
+      async function copy(text){
+        try { await navigator.clipboard.writeText(text); }
+        catch { throw new Error("Clipboard not available"); }
+      }
+    })();
+</script>
 </body>
 </html>
