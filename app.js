@@ -11,7 +11,7 @@
     cfg = {};
   }
 
-  // Применяем профиль
+  // Профиль
   if (cfg.profile?.avatar) $('avatar').src = cfg.profile.avatar;
   if (cfg.profile?.name) $('name').textContent = cfg.profile.name;
   if (cfg.profile?.username) $('username').textContent = cfg.profile.username;
@@ -28,35 +28,54 @@
   document.title = title;
   setOG('og:title', title);
   setOG('og:description', cfg.site?.description || cfg.profile?.bio || 'Все мои ссылки');
-  if (cfg.site?.ogImage) setOG('og:image', cfg.site.ogImage);
+  setOG('og:image', cfg.site?.ogImage || 'assets/og-banner.png');
+  setOG('og:url', cfg.site?.shareUrl || location.href);
 
   // Тема и акцент
   const themePref = readTheme(cfg.site?.theme || 'auto');
   applyTheme(themePref);
   if (cfg.site?.accentColor) document.documentElement.style.setProperty('--accent', cfg.site.accentColor);
 
-  // Ссылки
+  // Ссылки (основной список)
   const list = $('links');
   const links = Array.isArray(cfg.links) ? cfg.links : [];
   list.innerHTML = links.map(renderLink).join('');
-  // Применяем брендовые цвета (JS встраивает альфа-градиент)
+
+  // Подмешиваем брендовые тона в плитки
   Array.from(list.querySelectorAll('a[data-brand]')).forEach(a => {
     const hex = a.dataset.brand;
     const rgba = hexToRgba(hex, 0.16);
     a.style.setProperty('--tint', rgba);
   });
 
+  // Эмодзи‑панель быстрых ссылок
+  const quick = document.getElementById('quick');
+  const emojiBar = document.getElementById('emojiBar');
+  if (emojiBar) {
+    const emojiLinks = links.filter(l => l.emoji);
+    if (emojiLinks.length) {
+      emojiBar.innerHTML = emojiLinks.map(renderEmojiBtn).join('');
+      quick.hidden = false;
+      Array.from(emojiBar.querySelectorAll('a[data-brand]')).forEach(a => {
+        const hex = a.dataset.brand;
+        const rgba = hexToRgba(hex, 0.18);
+        a.style.setProperty('--tint', rgba);
+      });
+    }
+  }
+
   // Кнопки действий
   const shareBtn = $('share');
   shareBtn.addEventListener('click', async () => {
     const url = cfg.site?.shareUrl || location.href;
     const text = cfg.profile?.bio || 'Мои ссылки';
-    if (navigator.share) {
-      try { await navigator.share({ title, text, url }); } catch {}
-    } else {
-      await copyToClipboard(url);
-      feedback(shareBtn, 'Ссылка скопирована ✔');
-    }
+    try {
+      if (navigator.share) await navigator.share({ title, text, url });
+      else {
+        await copyToClipboard(url);
+        feedback(shareBtn, 'Ссылка скопирована ✔');
+      }
+    } catch {}
   });
 
   const copyBtn = $('copy');
@@ -90,6 +109,19 @@
           <span class="l">${escapeHtml(label)}</span>
         </a>
       </li>`;
+  }
+
+  function renderEmojiBtn(ln) {
+    const url = ln.url || '#';
+    const label = ln.label || url;
+    const emoji = ln.emoji || '🔗';
+    const brand = ln.color || guessBrandColor(ln.icon, url);
+    const rel = url.startsWith('http') ? 'noopener noreferrer' : '';
+    const target = url.startsWith('http') ? '_blank' : '_self';
+    const brandAttr = brand ? ` data-brand="${escapeHtml(brand)}"` : '';
+    return `<li>
+      <a href="${escapeHtml(url)}" target="${target}" rel="${rel}" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}"${brandAttr}>${escapeHtml(emoji)}</a>
+    </li>`;
   }
 
   function setOG(property, content) {
@@ -148,7 +180,7 @@
 
   function hexToRgba(hex, a=0.16) {
     const m = (hex || '').replace('#','');
-    if (![3,6].includes(m.length)) return 'rgba(124,58,237,.14)';
+    if (![3,6].includes(m.length)) return `rgba(124,58,237,${a})`;
     const n = m.length === 3 ? m.split('').map(s=>s+s).join('') : m;
     const r = parseInt(n.slice(0,2),16);
     const g = parseInt(n.slice(2,4),16);
