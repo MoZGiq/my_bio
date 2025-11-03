@@ -14,7 +14,7 @@
   <meta property="og:image" content="" />
   <meta property="og:url" content="" />
 
-  <!-- Шрифт -->
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -110,7 +110,7 @@
       display:grid; place-items:center; font-size:14px; color:#fff;
       background:color-mix(in oklab, var(--accent) 50%, #0000);
       border:1px solid color-mix(in oklab, var(--accent) 70%, #ffffff1a);
-      box-shadow:0 8px 20px color-мix(in oklab, var(--accent) 30%, #0000);
+      box-shadow:0 8px 20px color-mix(in oklab, var(--accent) 30%, #0000);
       pointer-events:none;
     }
 
@@ -135,9 +135,9 @@
       width:var(--icon-size); height:var(--icon-size);
       border-radius:var(--icon-radius);
       display:grid; place-items:center; font-size:calc(var(--icon-size) * .44);
-      background:color-мix(in oklab, var(--link-color) 22%, transparent);
-      border:1px solid color-мix(in oklab, var(--link-color) 60%, #ffffff1a);
-      box-shadow:0 10px 22px color-мix(in oklab, var(--link-color) 30%, transparent);
+      background:color-mix(in oklab, var(--link-color) 22%, transparent);
+      border:1px solid color-mix(in oklab, var(--link-color) 60%, #ffffff1a);
+      box-shadow:0 10px 22px color-mix(in oklab, var(--link-color) 30%, transparent);
       transition:transform .12s ease, box-shadow .2s ease, border-color .2s ease;
     }
     .emoji-btn:hover .emoji-ico{ transform:translateY(-2px) scale(1.03) }
@@ -162,7 +162,7 @@
       display:grid; place-items:center;
       color:#fff; font-size:22px; cursor:pointer;
       border:1px solid #ffffff1f;
-      background:linear-gradient(180deg, color-мix(in oklab, var(--accent) 55%, #0000), #0000);
+      background:linear-gradient(180deg, color-mix(in oklab, var(--accent) 55%, #0000), #0000);
       box-shadow:0 10px 30px rgba(0,0,0,.45);
       transition:transform .12s ease, filter .2s ease;
     }
@@ -210,7 +210,7 @@
     }
     .btn:hover{ transform:translateY(-1px) }
     .btn.destructive{ background:#2a1420; border-color:#ff3b7a66 }
-    .btn.primary{ background:linear-gradient(180deg, color-мix(in oklab, var(--accent) 55%, #0000), #0000); }
+    .btn.primary{ background:linear-gradient(180deg, color-mix(in oklab, var(--accent) 55%, #0000), #0000); }
     .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 
     /* Редактор ссылок */
@@ -351,15 +351,17 @@
       <div class="section">
         <h3>Шеринг/сохранение</h3>
         <div class="grid-2">
-          <button class="btn" id="btnSave">Сохранить (локально)</button>
+          <button class="btn" id="btnSave">Сохранить (локально + repo)</button>
           <button class="btn" id="btnShare">Ссылка на конфиг</button>
         </div>
       </div>
 
       <div class="section">
         <h3>Глобально (GitHub)</h3>
-        <div class="field"><label>Owner</label><input id="ghOwner" type="text" placeholder="username" /></div>
-        <div class="field"><label>Repo</label><input id="ghRepo" type="text" placeholder="repo-name" /></div>
+        <div class="row">
+          <div class="field" style="flex:1"><label>Owner</label><input id="ghOwner" type="text" /></div>
+          <div class="field" style="flex:1"><label>Repo</label><input id="ghRepo" type="text" /></div>
+        </div>
         <div class="row">
           <div class="field" style="flex:1"><label>Branch</label><input id="ghBranch" type="text" placeholder="main" /></div>
           <div class="field" style="flex:1"><label>Path</label><input id="ghPath" type="text" placeholder="config.json" /></div>
@@ -370,7 +372,7 @@
           <button class="btn primary" id="btnPublish">Публиковать (для всех)</button>
         </div>
         <p style="color:#9aa0ae; font-size:12px; margin-top:6px;">
-          Токен хранится в sessionStorage и используется только для запроса к GitHub API. Нужны права public_repo (или repo для приватных).
+          Нужны права: public_repo (публичный) или repo (приватный). Токен хранится в sessionStorage.
         </p>
       </div>
     </div>
@@ -395,19 +397,18 @@
     ui: { iconSize: 64, iconRadius: 16, avatarRadius: 20, gridMin: 82, showLabels: true },
     links: [
       { label: "Telegram", url: "https://t.me/maxvanila", icon: "✈️", color: "#229ED9" },
-      { label: "Insta",    url: "https://instagram.com/maxvanila", icon: "📷", color: "#E1306C" },
       { label: "VK",       url: "https://vk.com/maxvanila", icon: "🟦", color: "#0077FF" },
       { label: "GitHub",   url: "https://github.com/maxvanila", icon: "💻", color: "#333333" },
       { label: "YouTube",  url: "https://youtube.com/@maxvanila", icon: "▶️", color: "#FF0033" },
-      { label: "Сайт",     url: "https://example.com", icon: "🌐", color: "#16a34a" },
-      { label: "Email",    url: "mailto:me@example.com", icon: "✉️", color: "#f97316" }
     ]
   };
 </script>
 
 <script>
-(function(){
-  const CONFIG_URL = "./config.json"; // глобальный файл в репозитории
+(async function(){
+  // Глобальные настройки репозитория (по умолчанию заданы под MoZGiq/my_bio)
+  const DEFAULT_GH = { owner:"MoZGiq", repo:"my_bio", branch:"main", path:"config.json" };
+  const CONFIG_URL = "./config.json"; // этот файл читают все посетители
 
   const THEMES = {
     acid:       { accent:"#b4ff1f", gradient:["#00ffd1","#b4ff1f"] },
@@ -442,18 +443,22 @@
   const btnAddLink=$("#btnAddLink");
   const btnSave=$("#btnSave"), btnExport=$("#btnExport"), btnImport=$("#btnImport"), btnShare=$("#btnShare"), btnReset=$("#btnReset");
 
-  // Global (GitHub)
+  // GitHub controls
   const ghOwner=$("#ghOwner"), ghRepo=$("#ghRepo"), ghBranch=$("#ghBranch"), ghPath=$("#ghPath"), ghToken=$("#ghToken");
   const btnPublish=$("#btnPublish"), btnLoadRemote=$("#btnLoadRemote");
 
   // ========= INIT =========
-  loadFromStorage();                // 1) локальный кэш
-  await loadFromRemote();           // 2) глобальный config.json для всех
-  loadFromURL();                    // 3) ?p= применить и сохранить локально
+  // Предзаполним GitHub поля
+  prefillGitHubFields();
+  // 1) локальный кэш
+  loadFromStorage();
+  // 2) глобальный config.json
+  await loadFromRemote();
+  // 3) ?p=... → локально и чистим URL
+  loadFromURL();
 
   applyTheme(); applyBackground(); applyUI(); renderProfile();
   bindAvatarEdit(); bindPanel(); fillSettings(); renderLinksEditor();
-  prefillGitHubFields();
 
   // ========= THEME/UI/BG =========
   function applyTheme(){
@@ -508,18 +513,26 @@
     bioEl.textContent = profile.bio || "";
     footerLocation.textContent = profile.location || "";
 
-    document.title = profile.name ? `${profile.name} • ${profile.username ? '@' + profile.username : 'profile'}` : "Профиль";
+    const title = profile.name ? `${profile.name} • ${profile.username ? '@' + profile.username : 'profile'}` : "Профиль";
+    document.title = title;
 
     linksEl.innerHTML = "";
     (profile.links || []).forEach(link=>{
       const a = document.createElement("a");
       a.className = "emoji-btn";
       a.href = link.url; a.target = "_blank"; a.rel="noopener noreferrer";
-      a.ariaLabel = link.label || domainFrom(link.url) || "Ссылка";
+      a.setAttribute("aria-label", link.label || domainFrom(link.url) || "Ссылка");
       a.title = `${link.label || "Ссылка"} • ${domainFrom(link.url)}`;
       if (link.color) a.style.setProperty("--link-color", link.color);
-      const ico = document.createElement("div"); ico.className = "emoji-ico"; ico.textContent = link.icon || "🔗";
-      const label = document.createElement("div"); label.className = "emoji-label"; label.textContent = link.label || domainFrom(link.url) || "Link";
+
+      const ico = document.createElement("div");
+      ico.className = "emoji-ico";
+      ico.textContent = link.icon || "🔗";
+
+      const label = document.createElement("div");
+      label.className = "emoji-label";
+      label.textContent = link.label || domainFrom(link.url) || "Link";
+
       a.append(ico, label);
       linksEl.appendChild(a);
     });
@@ -621,7 +634,17 @@
     });
 
     // Export / import / save / share / reset
-    btnSave.addEventListener("click", ()=>{ save(); flash(btnSave); });
+    btnSave.addEventListener("click", async ()=>{
+      save(); // локально
+      const ctx = getGhCtx();
+      if (ctx.token) {
+        try { await publishGlobal(profile, ctx); flash(btnSave, "Сохранено в repo"); }
+        catch(e){ console.error(e); alert("Ошибка публикации: " + (e?.message||e)); }
+      } else {
+        flash(btnSave, "Сохранено локально");
+      }
+    });
+
     btnExport.addEventListener("click", ()=>{
       const json = JSON.stringify(profile, null, 2);
       copy(json).then(()=>flash(btnExport,"Скопировано")).catch(()=>download("profile.json", json));
@@ -658,18 +681,10 @@
       flash(btnLoadRemote, "Загружено");
     });
     btnPublish.addEventListener("click", async ()=>{
-      const ctx = getGhCtx();
-      if (!ctx.owner || !ctx.repo || !ctx.branch || !ctx.path || !ctx.token) {
-        alert("Заполни Owner, Repo, Branch, Path и Token");
-        return;
-      }
-      try {
-        await publishGlobal(profile, ctx);
-        flash(btnPublish, "Опубликовано");
-      } catch(e){
-        console.error(e);
-        alert("Ошибка публикации: " + (e?.message || e));
-      }
+      const ctx = getGhCtx(true);
+      if (!ctx.token) { alert("Укажи GitHub Token"); return; }
+      try { await publishGlobal(profile, ctx); flash(btnPublish, "Опубликовано"); }
+      catch(e){ console.error(e); alert("Ошибка публикации: " + (e?.message || e)); }
     });
   }
 
@@ -691,6 +706,7 @@
     setIconSize.value = profile.ui?.iconSize ?? 64;
     setGridMin.value = profile.ui?.gridMin ?? 82;
     setLabels.value = profile.ui?.showLabels ? "1" : "0";
+
     setBgImage.value = profile.background?.image || "";
     setBgVideo.value = profile.background?.video || "";
     setBgBlur.value = profile.background?.blur ?? 0;
@@ -714,6 +730,7 @@
       const color = document.createElement("input"); color.type="color"; color.value = toColor(link.color || "#7c3aed");
       const del = document.createElement("button"); del.className="btn del"; del.textContent="🗑";
 
+      row.style.gridTemplateColumns = "24px 52px 1fr 1.2fr 52px 34px";
       row.append(drag, icon, label, url, color, del);
 
       label.addEventListener("input", e=>{ link.label = e.target.value; renderAndSave(); });
@@ -799,12 +816,12 @@
 
   // ========= GITHUB PUBLISH =========
   function prefillGitHubFields(){
-    const inferred = inferRepoContext();
-    ghOwner.value = localStorage.getItem("gh_owner") || inferred.owner || "";
-    ghRepo.value  = localStorage.getItem("gh_repo")  || inferred.repo  || "";
-    ghBranch.value= localStorage.getItem("gh_branch")|| "main";
-    ghPath.value  = localStorage.getItem("gh_path")  || "config.json";
-    ghToken.value = sessionStorage.getItem("gh_token") || "";
+    // Предзаполняем из DEFAULT_GH, можно менять
+    ghOwner.value  = localStorage.getItem("gh_owner")  || DEFAULT_GH.owner;
+    ghRepo.value   = localStorage.getItem("gh_repo")   || DEFAULT_GH.repo;
+    ghBranch.value = localStorage.getItem("gh_branch") || DEFAULT_GH.branch;
+    ghPath.value   = localStorage.getItem("gh_path")   || DEFAULT_GH.path;
+    ghToken.value  = sessionStorage.getItem("gh_token") || "";
 
     [ghOwner,ghRepo,ghBranch,ghPath].forEach(el=>{
       el.addEventListener("input", ()=>{
@@ -814,30 +831,19 @@
         localStorage.setItem("gh_path", ghPath.value.trim());
       });
     });
-    ghToken.addEventListener("input", ()=> sessionStorage.setItem("gh_token", ghToken.value));
+    ghToken.addEventListener("input", ()=> sessionStorage.setItem("gh_token", ghToken.value.trim()));
   }
 
-  function getGhCtx(){
-    return {
-      owner: ghOwner.value.trim(),
-      repo: ghRepo.value.trim(),
-      branch: ghBranch.value.trim() || "main",
-      path: ghPath.value.trim() || "config.json",
-      token: ghToken.value.trim()
+  function getGhCtx(strict=false){
+    const ctx = {
+      owner: (ghOwner.value||"").trim() || DEFAULT_GH.owner,
+      repo: (ghRepo.value||"").trim() || DEFAULT_GH.repo,
+      branch: (ghBranch.value||"").trim() || DEFAULT_GH.branch,
+      path: (ghPath.value||"").trim() || DEFAULT_GH.path,
+      token: (ghToken.value||"").trim()
     };
-  }
-
-  function inferRepoContext(){
-    // для https://username.github.io/repo/ → {owner: username, repo: repo}
-    try{
-      const h = location.hostname; const p = location.pathname.replace(/^\/+/,'').split('/');
-      if (h.endsWith(".github.io")) {
-        const owner = h.split(".github.io")[0];
-        const repo = p[0] || "";
-        return { owner, repo };
-      }
-    } catch{}
-    return { owner:"", repo:"" };
+    if (strict && (!ctx.owner || !ctx.repo || !ctx.branch || !ctx.path)) throw new Error("Owner/Repo/Branch/Path не заданы");
+    return ctx;
   }
 
   async function publishGlobal(obj, ctx){
@@ -849,8 +855,8 @@
       "X-GitHub-Api-Version": "2022-11-28"
     };
 
-    // получить sha текущего файла (если есть)
-    let sha = undefined;
+    // Получить sha файла (если существует)
+    let sha;
     try{
       const r = await fetch(`${api}/repos/${encodeURIComponent(ctx.owner)}/${encodeURIComponent(ctx.repo)}/contents/${encodeURIComponent(ctx.path)}?ref=${encodeURIComponent(ctx.branch)}`, { headers });
       if (r.ok){
@@ -862,12 +868,13 @@
     } catch(e){ console.warn("Get sha failed:", e); }
 
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(obj, null, 2))));
-    const body = { message:"chore: update config via UI", content, branch: ctx.branch, sha };
+    const body = { message:"chore: update config via settings", content, branch: ctx.branch, sha };
     const r2 = await fetch(`${api}/repos/${encodeURIComponent(ctx.owner)}/${encodeURIComponent(ctx.repo)}/contents/${encodeURIComponent(ctx.path)}`, {
       method:"PUT", headers, body: JSON.stringify(body)
     });
     if (!r2.ok) throw new Error(await r2.text());
-    // после публикации обновим локально с репозитория
+
+    // Обновим локально из репозитория
     await loadFromRemote(true);
     applyTheme(); applyBackground(); applyUI(); renderProfile(); fillSettings(); renderLinksEditor();
   }
