@@ -451,8 +451,9 @@
       const btnSave=$("#btnSave"), btnExport=$("#btnExport"), btnImport=$("#btnImport"), btnShare=$("#btnShare"), btnReset=$("#btnReset");
 
       // ========== INIT ==========
-      loadFromURL();
-      loadFromStorage();
+      const hadStorage = loadFromStorage();
+      const hadURL = loadFromURL(); // при наличии ?p=... перезапишет профиль, сохранит и почистит URL
+
       applyTheme();
       applyBackground();
       applyUI();
@@ -726,25 +727,15 @@
           row.dataset.index = idx;
 
           const drag = document.createElement("div"); drag.className="drag"; drag.textContent="☰";
+          const icon = document.createElement("input"); icon.className="icon-input"; icon.type="text"; icon.value = link.icon || "🔗"; icon.maxLength = 4;
           const label = document.createElement("input"); label.type="text"; label.value = link.label || ""; label.placeholder="Метка";
           const url = document.createElement("input"); url.type="url"; url.value = link.url || ""; url.placeholder="https://...";
           const color = document.createElement("input"); color.type="color"; color.value = toColor(link.color || "#7c3aed");
-          const icon = document.createElement("input"); icon.className="icon-input"; icon.type="text"; icon.value = link.icon || "🔗"; icon.maxLength = 4;
           const del = document.createElement("button"); del.className="btn del"; del.textContent="🗑";
 
-          // grid template: 24px drag | label | url | color | del
-          row.style.gridTemplateColumns = "24px 1fr 1.2fr 52px 34px";
-          row.append(drag, label, url, color, del);
-          // standalone icon on top of label field
-          label.style.paddingLeft="10px";
-          label.style.background="#0a0d16";
-
-          // Append separate small icon field stacked? Keep compact: put icon before label:
-          // Replace: We'll insert icon before label:
-          row.insertBefore(icon, label);
           row.style.gridTemplateColumns = "24px 52px 1fr 1.2fr 52px 34px";
+          row.append(drag, icon, label, url, color, del);
 
-          // Handlers
           label.addEventListener("input", e=>{ link.label = e.target.value; renderAndSave(); });
           url.addEventListener("input", e=>{ link.url = e.target.value; save(); });
           color.addEventListener("input", e=>{ link.color = e.target.value; renderAndSave(); });
@@ -753,7 +744,6 @@
             profile.links.splice(idx,1); renderLinksEditor(); renderAndSave();
           });
 
-          // Drag n drop
           row.addEventListener("dragstart", e=>{
             e.dataTransfer.setData("text/plain", String(idx));
             e.dataTransfer.effectAllowed = "move";
@@ -779,30 +769,51 @@
         try { localStorage.setItem("profile_data", JSON.stringify(profile)); } catch {}
       }
       function renderAndSave(){ renderProfile(); save(); }
+
+      function b64ToUtf8(b64){
+        // надёжный декодер base64 → UTF‑8
+        return decodeURIComponent(Array.prototype.map.call(atob(b64), c => '%' + c.charCodeAt(0).toString(16).padStart(2,'0')).join(''));
+      }
+
+      // localStorage → загрузка
       function loadFromStorage(){
         try {
           const raw = localStorage.getItem("profile_data");
-          if (!raw) return;
-          const data = JSON.parse(raw);
-          profile = normalize(data);
-        } catch {}
+          if (!raw) return false;
+          profile = normalize(JSON.parse(raw));
+          return true;
+        } catch { return false; }
       }
+
+      // URL (?p=...) → приоритет, автосохранение и очистка параметра
       function loadFromURL(){
-        const params = new URLSearchParams(location.search);
-        const p = params.get("p");
-        if (!p) return;
+        const url = new URL(window.location.href);
+        const p = url.searchParams.get("p");
+        if (!p) return false;
         try {
-          const json = decodeURIComponent(escape(atob(p)));
+          const json = b64ToUtf8(p);
           const data = JSON.parse(json);
           profile = normalize(data);
-        } catch { console.warn("Bad config in URL"); }
+          save(); // автосохранение для посетителя
+
+          // убрать только параметр p, остальные параметры и hash оставить
+          url.searchParams.delete("p");
+          const clean = url.pathname + (url.searchParams.toString() ? "?" + url.searchParams.toString() : "") + url.hash;
+          history.replaceState({}, "", clean);
+          return true;
+        } catch (e) {
+          console.warn("Bad config in URL", e);
+          return false;
+        }
       }
+
       function makeShareLink(obj){
         const json = JSON.stringify(obj);
         const b64 = btoa(unescape(encodeURIComponent(json)));
         const url = new URL(window.location.href);
-        url.searchParams.set("p", b64);
-        return url.toString();
+        // делаем красивую ссылку без index.html
+        const cleanPath = url.pathname.replace(/index\.html$/,'');
+        return `${url.origin}${cleanPath}?p=${b64}`;
       }
 
       // ========== HELPERS ==========
@@ -810,7 +821,6 @@
       function toNum(v, d){ v = Number(v); return Number.isFinite(v) ? v : d; }
       function toColor(v){
         if (!v) return "#7c3aed";
-        // if rgb(...) convert to hex rough
         if (v.startsWith("rgb")){
           const m = v.match(/rgb[a]?\((\d+),\s*(\d+),\s*(\d+)/i);
           if (m){ return "#" + [m[1],m[2],m[3]].map(n=>Number(n).toString(16).padStart(2,"0")).join(""); }
@@ -843,6 +853,12 @@
       async function copy(text){
         try { await navigator.clipboard.writeText(text); }
         catch { throw new Error("Clipboard not available"); }
+      }
+      function download(name, content){
+        const a=document.createElement("a");
+        a.href=URL.createObjectURL(new Blob([content], {type:"application/json"}));
+        a.download=name; a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href),1000);
       }
     })();
 </script>
