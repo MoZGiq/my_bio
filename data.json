@@ -10,7 +10,7 @@
   "profile": {
     "name": "MoZGi",
     "username": "@maxvanila",
-    "bio": "Пара слов о себе. Автор, разработчик, артист.",
+    "bio": "Разработчик сайта | Плагинов",
     "avatar": "assets/avatar.jpg",
     "verified": true,
     "location": "Москва"
@@ -23,3 +23,4 @@
     { "label": "TikTok",    "url": "https://tiktok.com/@username",     "icon": "tiktok" },
   ]
 }
+
