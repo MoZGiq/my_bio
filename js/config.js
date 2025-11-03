@@ -8,8 +8,8 @@
     "ogImage": "assets/og-banner.png"
   },
   "profile": {
-    "name": "Имя Фамилия",
-    "username": "@username",
+    "name": "MoZGi",
+    "username": "@maxvanila",
     "bio": "Пара слов о себе. Автор, разработчик, артист.",
     "avatar": "assets/avatar.jpg",
     "verified": true,
